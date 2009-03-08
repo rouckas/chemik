@@ -1,0 +1,146 @@
+#include "matrix.h"
+#include "stiff.h"
+#include "chemical.cpp"
+
+using namespace std;
+
+double x0 = 0.0;
+double x_max = 1e6;
+
+double eps = 1e-3;
+
+double hi = 1e-15;
+int maxlen = 100000;
+
+string outfile("res.dat");
+string specfile("species.txt");
+string reactfile("reactions.txt");
+string plotfile("plotcmd.gnuplot");
+
+t_chemistry chemie;
+
+void jacobn(double x, const vector<double> &y, double **dfdy, int n)
+{
+    for(int i=0; i<n; i++)
+	chemie.set_concentration(i, y[i]);
+    for(int i=0; i<n; i++)
+	for(int j=0; j<n; j++)
+	    dfdy[i][j] = chemie.jacobn(i,j);
+}
+void derivs(double x, const vector<double> &y, vector<double> &dydx, int n)
+{
+    for(int i=0; i<n; i++)
+	chemie.set_concentration(i, y[i]);
+    for(int i=0; i<n; i++)
+	dydx[i] = chemie.deriv(i);
+}
+
+
+int main()
+{
+    chemie.read_species(specfile.c_str());
+    chemie.read_reactions(reactfile.c_str());
+
+    
+    //for(int i=0; i<chemie.Nreactions(); i++)
+//	chemie.Reaction(i)->print();
+
+    
+    vector<double> Y0;
+    for(int i=0; i<chemie.Nelem(); i++) Y0.push_back(chemie.Concentration(i));
+    ode_init(chemie.Nelem(), 100000);
+
+
+    //stiffint(Y0, x0, x_max, eps, hi, derivs, jacobn, euler_step, 1);
+    int nok=0, nbad=0;
+    stiffint_adpt(Y0, x0, x_max, eps, hi, nok, nbad, derivs, jacobn, rosenbrock_step, 4);
+    cerr << nok << "  " << nbad << endl;
+    
+    /*
+    cout << endl << "CONCENTRATION" << endl;
+    for(int i=0; i<chemie.Nelem(); i++)
+	cout << chemie.Species(i)->Name() << " " << chemie.Species(i)->Concentration() << endl;
+	*/
+
+    // Porovnani reakci pro dany prvek
+    
+    /*
+    for(int i=0; i<chemie.Nelem(); i++)
+    {
+	cout << "###### "<< chemie.Species(i)->Name() << " ######" << endl;
+	for(int j=0; j<chemie.Species(i)->Is_product().size(); j++)
+	{
+	    //cout << setw(7) << chemie.Species(i)->Is_product()[j]->deriv() / chemie.Species(i)->Concentration() << "  ";
+	    cout << setw(7) << chemie.Species(i)->rel_deriv( chemie.Species(i)->Is_product()[j] ) << "  ";
+	    chemie.Species(i)->Is_product()[j]->print();
+	}
+	cout << endl;
+
+	for(int j=0; j<chemie.Species(i)->Is_reactant().size(); j++)
+	{
+	    //cout << setw(7) << -chemie.Species(i)->Is_reactant()[j]->deriv() / chemie.Species(i)->Concentration() << "  ";
+	    cout << setw(7) << chemie.Species(i)->rel_deriv( chemie.Species(i)->Is_reactant()[j] ) << "  ";
+	    chemie.Species(i)->Is_reactant()[j]->print();
+	}
+	cout << endl;
+
+    }
+    */
+
+
+    //cout << endl << endl;
+    chemie.sort_reactions();
+    // Provnani celkoveho vlivu reakci
+    
+    
+    for(int i=0; i<chemie.Nreactions(); i++)
+    {
+	//cout << setw(10) << chemie.Reaction(i)->importance5() << "  ";
+	//chemie.Reaction(i)->print();
+    }
+    //exit(0);
+    /*
+    cout << endl << "DERIV" << endl;
+    for(int i=0; i<chemie.Nelem(); i++)
+	cout << chemie.Species(i)->Name() << " " << chemie.Species(i)->deriv()/chemie.Species(i)->Concentration() << endl;
+    */
+    
+    cout << chemie.Nreactions();
+    for(int i=0; i<chemie.Nelem(); i++)
+	cout << " " << chemie.Species(i)->Concentration();
+    cout << endl;
+    /*
+    cout << endl << "CONCENTRATION" << endl;
+    for(int i=0; i<chemie.Nelem(); i++)
+	cout << chemie.Species(i)->Name() << " " << chemie.Species(i)->Concentration() << endl;
+*/	
+    ofstream fw(outfile.c_str());
+    fw << "#   ";
+    for(int j=0; j<chemie.Nelem(); j++)
+	fw << "  " << setw(7) << chemie.Species(j)->Name() ;
+    fw << endl;
+    for(int i=0;i<ode_nstep;i++)
+    {
+	fw << ode_dat[chemie.Nelem()][i];
+	for(int j=0; j<chemie.Nelem(); j++)
+	    fw << "  " << setw(7) << ode_dat[j][i] ;
+	fw << endl;
+    }
+    fw.close();
+
+    fw.open(plotfile.c_str());
+    fw << "plot\\" << endl;
+    for(int j=0; j<chemie.Nelem()-1; j++)
+	fw << "  " << "'" << outfile << "' using 1:" << j+2 << " title '"
+	    << chemie.Species(j)->Name() << "',\\" << endl ;
+    fw << "  " << "'" << outfile << "' using 1:" << chemie.Nelem()+1 <<
+	" title '" << chemie.Species(chemie.Nelem()-1)->Name() << "'" << endl ;
+    fw.close();
+    
+    
+    return 0;
+}
+
+
+
+
