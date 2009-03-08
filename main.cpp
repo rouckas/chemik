@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include "stiff.h"
 #include "chemical.cpp"
+#include <GetPot>
 
 using namespace std;
 
@@ -11,11 +12,6 @@ double eps = 1e-3;
 
 double hi = 1e-15;
 int maxlen = 100000;
-
-string outfile("res.dat");
-string specfile("species.txt");
-string reactfile("reactions.txt");
-string plotfile("plotcmd.gnuplot");
 
 t_chemistry chemie;
 
@@ -38,6 +34,17 @@ void derivs(double x, const vector<double> &y, vector<double> &dydx, int n)
 
 int main(int argc, char *argv[])
 {
+
+    GetPot cl(argc,argv);
+    // load the configuration from file
+    string config_file = cl("config","config.txt");
+    GetPot config(config_file.c_str());
+
+    string outfile = config("outfile", "res.dat");
+    string specfile = config("specfile", "species.txt");
+    string reactfile = config("reactfile", "reactions.txt");
+    string plotfile = config("plotfile", "plotcmd.gnuplot");
+
     chemie.read_species(specfile.c_str());
     chemie.read_reactions(reactfile.c_str());
 

@@ -1,0 +1,4 @@
+outfile = result.dat
+specfile = species.txt
+reactfile = reactions.txt
+plotfile = plotcmd.gnuplot
