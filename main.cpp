@@ -46,9 +46,20 @@ int main(int argc, char *argv[])
     string plotfile = config("plotfile", "plotcmd.gnuplot");
 
     chemie.read_species(specfile.c_str());
+    if( chemie.Nelem() == 0 )
+    {
+        cerr << "no elements loaded from species file '" << specfile << "', aborting" << endl;
+        return 1;
+    }
     chemie.read_reactions(reactfile.c_str());
+    if( chemie.Nreactions() == 0 )
+    {
+        cerr << "no reactions loaded from reactions file '" << reactfile << "', aborting" << endl;
+        return 1;
+    }
 
     
+
     vector<double> Y0;
     for(int i=0; i<chemie.Nelem(); i++) Y0.push_back(chemie.Concentration(i));
     ode_init(chemie.Nelem(), 100000);
