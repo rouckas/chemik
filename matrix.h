@@ -43,10 +43,10 @@ template<class T> class t_matrix
 template<class T> class t_numatrix : public t_matrix<T>
 {
     protected:
-	t_matrix<T>::rows;
-	t_matrix<T>::cols;
-	t_matrix<T>::vm;
-	t_matrix<T>::m;
+	using t_matrix<T>::rows;
+	using t_matrix<T>::cols;
+	using t_matrix<T>::vm;
+	using t_matrix<T>::m;
     public:
 	t_numatrix() : t_matrix<T>() {} ;
 	t_numatrix(int rows, int cols) : t_matrix<T>(rows, cols) {} ;
@@ -66,10 +66,10 @@ template<class T> t_vector<T> operator * (const t_vector<T> &l, const t_matrix<T
 template<class T> class t_LUmatrix : public t_numatrix<T>
 {
     protected:
-	t_matrix<T>::rows;
-	t_matrix<T>::cols;
-	t_matrix<T>::vm;
-	t_matrix<T>::m;
+	using t_matrix<T>::rows;
+	using t_matrix<T>::cols;
+	using t_matrix<T>::vm;
+	using t_matrix<T>::m;
     private:
 	vector<int> indx;
 	signed char sign;
