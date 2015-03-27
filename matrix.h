@@ -240,10 +240,12 @@ template<class T> t_vector<T> operator * (const t_vector<T> &l, const t_matrix<T
     return res;
 }
 */
-template<class T> T abs(const T x)
+
+template<class T> T tabs(const T x)
 {
     return x>T(0) ? x : -x;
 }
+
 
 template<class T>
 t_LUmatrix<T>::t_LUmatrix(int rows, int cols) : t_numatrix<T>(rows, cols), indx(rows)
@@ -303,7 +305,7 @@ void t_LUmatrix<T>::decompose ()
     {
 	big = T(0);
 	for(j=0; j<n; j++)
-	    if((temp=abs<T>(a[i][j])) > big) 
+	    if((temp=tabs<T>(a[i][j])) > big) 
 		big = temp;
 	if(big==T(0))
 	    error("ludcmp: singular matrix");
@@ -326,7 +328,7 @@ void t_LUmatrix<T>::decompose ()
 	    for(k=0; k<j; k++)
 		sum -= a[i][k]*a[k][j];
 	    a[i][j] = sum;
-	    if( (dum=vv[i]*abs<T>(sum)) >= big )
+	    if( (dum=vv[i]*tabs<T>(sum)) >= big )
 	    {
 		big = dum;
 		imax = i;
